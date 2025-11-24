@@ -1,0 +1,315 @@
+services:
+  # -----------------------
+  # Kafka HA Cluster (3 brokers)
+  # -----------------------
+  kafka1:
+    image: confluentinc/cp-kafka:7.9.1
+    container_name: kafka1
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka1:9093,2@kafka2:9093,3@kafka3:9093
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka1:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_MIN_INSYNC_REPLICAS: 2
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 3
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      CLUSTER_ID: "f1a2b3c4-5678-90ab-cdef-1234567890ab"
+    volumes:
+      - kafka1_data:/var/lib/kafka/data
+    ports:
+      - "9092:9092"
+    command: >
+      sh -c "
+      kafka-storage.sh format --ignore-formatted -t ${CLUSTER_ID} -c /etc/kafka/kraft/server.properties || true;
+      /etc/confluent/docker/run
+      "
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092 || exit 1"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+      start_period: 45s
+    restart: unless-stopped
+
+  kafka2:
+    image: confluentinc/cp-kafka:7.9.1
+    container_name: kafka2
+    environment:
+      KAFKA_NODE_ID: 2
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka1:9093,2@kafka2:9093,3@kafka3:9093
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka2:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_MIN_INSYNC_REPLICAS: 2
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 3
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      CLUSTER_ID: "f1a2b3c4-5678-90ab-cdef-1234567890ab"
+    volumes:
+      - kafka2_data:/var/lib/kafka/data
+    command: >
+      sh -c "
+      kafka-storage.sh format --ignore-formatted -t ${CLUSTER_ID} -c /etc/kafka/kraft/server.properties || true;
+      /etc/confluent/docker/run
+      "
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092 || exit 1"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+      start_period: 45s
+    restart: unless-stopped
+
+  kafka3:
+    image: confluentinc/cp-kafka:7.9.1
+    container_name: kafka3
+    environment:
+      KAFKA_NODE_ID: 3
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka1:9093,2@kafka2:9093,3@kafka3:9093
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka3:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_MIN_INSYNC_REPLICAS: 2
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 3
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      CLUSTER_ID: "f1a2b3c4-5678-90ab-cdef-1234567890ab"
+    volumes:
+      - kafka3_data:/var/lib/kafka/data
+    command: >
+      sh -c "
+      kafka-storage.sh format --ignore-formatted -t ${CLUSTER_ID} -c /etc/kafka/kraft/server.properties || true;
+      /etc/confluent/docker/run
+      "
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092 || exit 1"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+      start_period: 45s
+    restart: unless-stopped
+
+  # -----------------------
+  # MinIO HA Cluster (4 nodes)
+  # -----------------------
+  minio1:
+    image: minio/minio
+    container_name: minio1
+    command: server http://minio{1...4}/data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+    volumes:
+      - minio1_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  minio2:
+    image: minio/minio
+    container_name: minio2
+    command: server http://minio{1...4}/data
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+    volumes:
+      - minio2_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  minio3:
+    image: minio/minio
+    container_name: minio3
+    command: server http://minio{1...4}/data
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+    volumes:
+      - minio3_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  minio4:
+    image: minio/minio
+    container_name: minio4
+    command: server http://minio{1...4}/data
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+    volumes:
+      - minio4_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  # -----------------------
+  # Producer
+  # -----------------------
+  producer:
+    build: ./producer
+    depends_on:
+      kafka1:
+        condition: service_healthy
+      kafka2:
+        condition: service_healthy
+      kafka3:
+        condition: service_healthy
+    environment:
+      - KAFKA_BROKER=kafka1:9092,kafka2:9092,kafka3:9092
+    restart: on-failure:5
+
+  # -----------------------
+  # Consumer
+  # -----------------------
+  consumer:
+    build: ./consumer
+    depends_on:
+      kafka1:
+        condition: service_healthy
+      kafka2:
+        condition: service_healthy
+      kafka3:
+        condition: service_healthy
+      minio1:
+        condition: service_healthy
+      minio2:
+        condition: service_healthy
+      minio3:
+        condition: service_healthy
+      minio4:
+        condition: service_healthy
+    environment:
+      - KAFKA_BROKER=kafka1:9092,kafka2:9092,kafka3:9092
+      - MINIO_ENDPOINT=minio1:9000
+      - MINIO_ACCESS_KEY=minio
+      - MINIO_SECRET_KEY=minio123
+      - MINIO_BUCKET=telco-churn
+    env_file:
+      - .env
+    restart: on-failure:5
+
+  
+
+  # -----------------------
+  # Spark Master
+  # -----------------------
+  spark-master:
+    build:
+      context: ./spark
+      dockerfile: Dockerfile
+    container_name: spark-master
+    command:
+      - "/opt/spark/bin/spark-class"
+      - "org.apache.spark.deploy.master.Master"
+      - "--host"
+      - "spark-master"
+    environment:
+      - SPARK_NO_DAEMONIZE=true
+    ports:
+      - "8080:8080"
+      - "7077:7077"
+    restart: unless-stopped
+
+  # -----------------------
+  # Spark Worker 1
+  # -----------------------
+  spark-worker1:
+    build:
+      context: ./spark
+      dockerfile: Dockerfile
+    container_name: spark-worker1
+    command:
+      - "/opt/spark/bin/spark-class"
+      - "org.apache.spark.deploy.worker.Worker"
+      - "spark://spark-master:7077"
+    environment:
+      - SPARK_NO_DAEMONIZE=true
+    depends_on:
+      - spark-master
+    ports:
+      - "8081:8081"
+    restart: unless-stopped
+
+  # -----------------------
+  # Spark Worker 2
+  # -----------------------
+  spark-worker2:
+    build:
+      context: ./spark
+      dockerfile: Dockerfile
+    container_name: spark-worker2
+    command:
+      - "/opt/spark/bin/spark-class"
+      - "org.apache.spark.deploy.worker.Worker"
+      - "spark://spark-master:7077"
+    environment:
+      - SPARK_NO_DAEMONIZE=true
+    depends_on:
+      - spark-master
+    ports:
+      - "8082:8082"
+    restart: unless-stopped
+
+  # -----------------------
+  # Spark Notebook
+  # -----------------------
+  spark-notebook:
+    build:
+      context: ./spark
+      dockerfile: Dockerfile
+    container_name: spark-notebook
+    user: root
+    depends_on:
+      - spark-master
+      - minio1
+    volumes:
+      - ./spark/app:/opt/workspace
+      - ./spark/conf/core-site.xml:/opt/spark/conf/core-site.xml
+      - ./spark/conf/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
+    environment:
+      - SPARK_MASTER=spark://spark-master:7077
+      - SPARK_HOME=/opt/spark
+      - PYSPARK_PYTHON=/usr/bin/python3
+      - PYTHONPATH=/opt/spark/python:/opt/spark/python/lib/py4j-0.10.9.7-src.zip
+      - JUPYTER_TOKEN=spark123
+    working_dir: /opt/workspace
+    ports:
+      - "8888:8888"
+      - "4040:4040"
+    restart: unless-stopped
+
+volumes:
+  kafka1_data:
+  kafka2_data:
+  kafka3_data:
+  minio1_data:
+  minio2_data:
+  minio3_data:
+  minio4_data:
+  spark-notebook-data:
