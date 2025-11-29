@@ -13,7 +13,8 @@ RUN pip install --no-cache-dir \
     notebook==7.5.0 \
     boto3==1.26.0 \
     pandas==2.1.1 \
-    pyarrow==12.0.1
+    pyarrow==12.0.1 \
+    "numpy<2"
 
 # Télécharger les jars Hadoop AWS pour S3A + Delta Lake 3.2.1 (compatible Spark 3.5.x)
 RUN mkdir -p /opt/spark/jars && \

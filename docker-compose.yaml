@@ -236,9 +236,13 @@ services:
       - "7077:7077"
     restart: unless-stopped
 
-  # -----------------------
-  # Spark Worker 1
-  # -----------------------
+
+
+
+
+# -----------------------
+# Spark Worker 1
+# -----------------------
   spark-worker1:
     build:
       context: ./spark
@@ -250,15 +254,18 @@ services:
       - "spark://spark-master:7077"
     environment:
       - SPARK_NO_DAEMONIZE=true
+      - SPARK_WORKER_CORES=4         # nombre de cœurs par worker
+      - SPARK_WORKER_MEMORY=6g       # mémoire allouée par worker
+      - SPARK_WORKER_WEBUI_PORT=8081 
     depends_on:
       - spark-master
     ports:
       - "8081:8081"
     restart: unless-stopped
 
-  # -----------------------
-  # Spark Worker 2
-  # -----------------------
+# -----------------------
+# Spark Worker 2
+# -----------------------
   spark-worker2:
     build:
       context: ./spark
@@ -270,11 +277,15 @@ services:
       - "spark://spark-master:7077"
     environment:
       - SPARK_NO_DAEMONIZE=true
+      - SPARK_WORKER_CORES=4
+      - SPARK_WORKER_MEMORY=6g
+      - SPARK_WORKER_WEBUI_PORT=8082   # <--- Ajouté
     depends_on:
       - spark-master
     ports:
       - "8082:8082"
     restart: unless-stopped
+
 
   # -----------------------
   # Spark Notebook
@@ -303,6 +314,10 @@ services:
       - "8888:8888"
       - "4040:4040"
     restart: unless-stopped
+
+
+
+    
 
 volumes:
   kafka1_data:
