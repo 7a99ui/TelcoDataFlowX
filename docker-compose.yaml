@@ -382,6 +382,25 @@ services:
     depends_on:
       - superset-db
 
+  # -----------------------
+  # Streamlit - Churn Prediction UI
+  # -----------------------
+  streamlit:
+    build:
+      context: ./streamlit
+      dockerfile: Dockerfile
+    container_name: streamlit-churn
+    environment:
+      MINIO_ACCESS_KEY: minio
+      MINIO_SECRET_KEY: minio123
+      MINIO_ENDPOINT: minio1:9000
+      MODEL_PATH: s3a://telco-churn/models/gbt_churn_resource_friendly
+    ports:
+      - "8501:8501"
+    depends_on:
+      - minio1
+    restart: unless-stopped
+
 volumes:
   kafka1_data:
   kafka2_data:
@@ -392,3 +411,5 @@ volumes:
   minio4_data:
   spark-notebook-data:
   superset_db_home:
+
+
